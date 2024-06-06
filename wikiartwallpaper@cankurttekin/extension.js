@@ -87,6 +87,7 @@ function getWallpaperUrl(url) {
 
             if (json && json.ImageDescription && json.ImageDescription.Url) {
                 let imageUrl = json.ImageDescription.Url;
+                imageUrl = imageUrl.slice(0, -10);
                 resolve(imageUrl);
             } else {
                 reject('ImageDescription or Url property is missing');
