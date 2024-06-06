@@ -1,0 +1,9 @@
+{
+  "uuid": "wikiartwallpaper@cankurttekin",
+  "name": "WikiArt Wallpaper",
+  "description": "A simple GNOME Shell extension to display WikiArt Artwork of the day.",
+  "shell-version": ["3.36", "3.38", "40", "42"],
+  "version": 1,
+  "url": "https://github.com/cankurttekin/WikiArt-Wallpaper-Gnome"
+}
+
