@@ -5,7 +5,9 @@ const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 
-var deneme = "There will be info about resource...";
+var resourceDescription = "There will be info about resource...";
+var timeoutId = null;
+var myExtension = null;
 
 var MyExtension = GObject.registerClass(
     class MyExtension extends PanelMenu.Button {
@@ -20,7 +22,7 @@ var MyExtension = GObject.registerClass(
             this.actor.add_child(this.icon);
 
             // Create a menu item
-            let menuItem = new PopupMenu.PopupMenuItem(deneme);
+            let menuItem = new PopupMenu.PopupMenuItem(resourceDescription);
             this.menu.addMenuItem(menuItem);
 
             this.actor.connect("button-press-event", () => {
@@ -50,7 +52,7 @@ function downloadAndSetWallpaper(urlToDownload) {
     // Download the image
     GLib.spawn_async(null, ['wget', '-O', '/tmp/wallpaper.jpg', urlToDownload], null, GLib.SpawnFlags.SEARCH_PATH, null);
 
-    GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 5, () => {
+    timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 5, () => {
         // Set the wallpaper
         let wallpaperSettings = new Gio.Settings({ schema: 'org.gnome.desktop.background' });
         wallpaperSettings.set_string('picture-uri', 'file:///tmp/wallpaper.jpg');
@@ -100,11 +102,20 @@ function init() {}
 
 function enable() {
     // Create and add the extension to the panel
-    let myExtension = new MyExtension();
+    myExtension = new MyExtension();
     Main.panel.addToStatusArea("my-extension", myExtension);
 }
 
 function disable() {
     // Remove the extension from the panel
-    Main.panel.statusArea["my-extension"].destroy();
+    if (myExtension) {
+        myExtension.destroy();
+        myExtension = null;
+    }
+    
+    // Remove any active timeout
+    if (timeoutId) {
+        GLib.Source.remove(timeoutId);
+        timeoutId = null;
+    }
 }
