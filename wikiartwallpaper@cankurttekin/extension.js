@@ -5,7 +5,8 @@ const Main = imports.ui.main;
 const PanelMenu = imports.ui.panelMenu;
 const PopupMenu = imports.ui.popupMenu;
 
-var resourceDescription = "There will be info about resource...";
+var currentImageUrl = '';
+var currentImageDescription = '';
 var timeoutId = null;
 var myExtension = null;
 const TrayIcon = 'wikiartwallpaper';
@@ -19,32 +20,49 @@ var MyExtension = GObject.registerClass(
             super._init(0.0, "MyExtension");
 
             this.icon = new St.Icon({
-                //icon_name: "system-run-symbolic",
                 style_class: "system-status-icon",
             });
 
-            this.icon.gicon =Gio.icon_new_for_string(`${Me.path}/icons/${TrayIcon}.svg`);
-            
-            
+            this.icon.gicon = Gio.icon_new_for_string(`${Me.path}/icons/${TrayIcon}.svg`);
             this.actor.add_child(this.icon);
 
-            // Create a menu item
-            let menuItem = new PopupMenu.PopupMenuItem(resourceDescription);
-            this.menu.addMenuItem(menuItem);
-
-            this.actor.connect("button-press-event", () => {
-                this._onButtonPress();
+            // Create a refresh button
+            this.refreshMenuItem = new PopupMenu.PopupMenuItem("Refresh");
+            this.refreshMenuItem.connect('activate', () => {
+                this._refreshWallpaper();
             });
+            this.menu.addMenuItem(this.refreshMenuItem);
+
+            // Create a menu item to display the current image URL and title
+            this.titleMenuItem = new PopupMenu.PopupMenuItem("Info about artwork will be displayed here when refreshed.", { reactive: false });
+            //this.urlMenuItem = new PopupMenu.PopupMenuItem("", { reactive: false });
+
+            this.titleMenuItem.label.clutter_text.line_wrap = true;
+            //this.urlMenuItem.label.clutter_text.line_wrap = true;
+
+            this.menu.addMenuItem(this.titleMenuItem);
+            //this.menu.addMenuItem(this.urlMenuItem);
+
+            // Set a fixed size for the menu
+            this.menu.actor.width = 500; // Fixed width in pixels
         }
 
-        async _onButtonPress() {
+        async _refreshWallpaper() {
             let myUrl = getArtworkApiUrl();
             try {
-                let myImageUrl = await getWallpaperUrl(myUrl);
+                let { url: myImageUrl, title: myImageDescription } = await getWallpaperUrl(myUrl);
                 downloadAndSetWallpaper(myImageUrl);
+                currentImageUrl = myImageUrl;
+                currentImageDescription = myImageDescription;
+                this._updateMenuItems();
             } catch (error) {
                 log('Failed to get wallpaper URL: ' + error);
             }
+        }
+
+        _updateMenuItems() {
+            this.titleMenuItem.label.text = currentImageDescription;
+            //this.urlMenuItem.label.text = currentImageUrl;
         }
     }
 );
@@ -94,15 +112,33 @@ function getWallpaperUrl(url) {
                 return;
             }
 
-            if (json && json.ImageDescription && json.ImageDescription.Url) {
-                let imageUrl = json.ImageDescription.Url;
-                imageUrl = imageUrl.slice(0, -10);
-                resolve(imageUrl);
+            if (json && json.ImageDescription && json.ImageDescription.Url && json.Title) {
+                let imageUrl = json.ImageDescription.Url.slice(0, -10);
+                let imageDesc = 'Title: ' + json.Title + '\n';
+                imageDesc += 'Artist: ' + json.ArtistName + '\n';
+                imageDesc += 'Year: ' + json.CompletitionYear + '\n';
+                imageDesc += 'Description: ' + json.Description + '\n';
+                imageDesc = convertHtmlToPlainText(imageDesc);
+                resolve({ url: imageUrl, title: imageDesc });
             } else {
-                reject('ImageDescription or Url property is missing');
+                reject('ImageDescription, Url or Title property is missing');
             }
         });
     });
+}
+
+function convertHtmlToPlainText(html) {
+    let text = html
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/?[^>]+(>|$)/g, "")
+        .replace(/&quot;/g, '"')
+        .replace(/&#39;/g, "'")
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/\\r/g, "")
+        .replace(/\\n/g, "\n");
+    return text;
 }
 
 function init() {}
