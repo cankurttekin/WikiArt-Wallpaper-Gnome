@@ -8,6 +8,10 @@ const PopupMenu = imports.ui.popupMenu;
 var resourceDescription = "There will be info about resource...";
 var timeoutId = null;
 var myExtension = null;
+const TrayIcon = 'wikiartwallpaper';
+
+const ExtensionUtils = imports.misc.extensionUtils;
+const Me = ExtensionUtils.getCurrentExtension();
 
 var MyExtension = GObject.registerClass(
     class MyExtension extends PanelMenu.Button {
@@ -15,10 +19,13 @@ var MyExtension = GObject.registerClass(
             super._init(0.0, "MyExtension");
 
             this.icon = new St.Icon({
-                icon_name: "system-run-symbolic",
+                //icon_name: "system-run-symbolic",
                 style_class: "system-status-icon",
             });
 
+            this.icon.gicon =Gio.icon_new_for_string(`${Me.path}/icons/${TrayIcon}.svg`);
+            
+            
             this.actor.add_child(this.icon);
 
             // Create a menu item
