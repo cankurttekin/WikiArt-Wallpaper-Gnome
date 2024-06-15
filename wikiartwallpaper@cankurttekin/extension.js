@@ -58,7 +58,7 @@ const WikiArtWallpaper = GObject.registerClass(
                 currentImageDescription = myImageDescription;
                 this._updateMenuItems();
             } catch (error) {
-                log('Failed to get wallpaper URL: ' + error);
+                console.log('Failed to get wallpaper URL: ' + error);
             }
         }
 
