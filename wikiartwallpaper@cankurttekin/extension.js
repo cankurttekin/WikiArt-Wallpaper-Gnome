@@ -1,9 +1,15 @@
-const { St, Clutter, Gio, GLib, GObject, Shell } = imports.gi;
-const Mainloop = imports.mainloop;
-const Soup = imports.gi.Soup;
-const Main = imports.ui.main;
-const PanelMenu = imports.ui.panelMenu;
-const PopupMenu = imports.ui.popupMenu;
+const { Shell } = imports.gi;
+import St from "gi://St";
+import Gio from "gi://Gio";
+import Clutter from "gi://Clutter";
+import Soup from 'gi://Soup';
+import GObject from 'gi://GObject';
+import GLib from 'gi://GLib';
+
+import { Extension, gettext as _ } from 'resource:///org/gnome/shell/extensions/extension.js';
+import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
+import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
+import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 var currentImageUrl = '';
 var currentImageDescription = '';
@@ -11,20 +17,19 @@ var timeoutId = null;
 var myExtension = null;
 const TrayIcon = 'wikiartwallpaper';
 
-const ExtensionUtils = imports.misc.extensionUtils;
-const Me = ExtensionUtils.getCurrentExtension();
+const WikiArtWallpaper = GObject.registerClass(
+    class WikiArtWallpaper extends PanelMenu.Button {
+        _init(extension) {
+            super._init(0.0, "WikiArtWallpaper");
 
-var MyExtension = GObject.registerClass(
-    class MyExtension extends PanelMenu.Button {
-        _init() {
-            super._init(0.0, "MyExtension");
+            this.extension = extension;  // Store the extension object
 
             this.icon = new St.Icon({
                 style_class: "system-status-icon",
             });
 
-            this.icon.gicon = Gio.icon_new_for_string(`${Me.path}/icons/${TrayIcon}.svg`);
-            this.actor.add_child(this.icon);
+            this.icon.gicon = Gio.icon_new_for_string(`${this.extension.path}/icons/${TrayIcon}.svg`);
+            this.add_child(this.icon);
 
             // Create a refresh button
             this.refreshMenuItem = new PopupMenu.PopupMenuItem("Refresh");
@@ -35,13 +40,10 @@ var MyExtension = GObject.registerClass(
 
             // Create a menu item to display the current image URL and title
             this.titleMenuItem = new PopupMenu.PopupMenuItem("Info about artwork will be displayed here when refreshed.", { reactive: false });
-            //this.urlMenuItem = new PopupMenu.PopupMenuItem("", { reactive: false });
 
             this.titleMenuItem.label.clutter_text.line_wrap = true;
-            //this.urlMenuItem.label.clutter_text.line_wrap = true;
 
             this.menu.addMenuItem(this.titleMenuItem);
-            //this.menu.addMenuItem(this.urlMenuItem);
 
             // Set a fixed size for the menu
             this.menu.actor.width = 500; // Fixed width in pixels
@@ -62,7 +64,6 @@ var MyExtension = GObject.registerClass(
 
         _updateMenuItems() {
             this.titleMenuItem.label.text = currentImageDescription;
-            //this.urlMenuItem.label.text = currentImageUrl;
         }
     }
 );
@@ -96,13 +97,16 @@ function getWallpaperUrl(url) {
         let session = new Soup.Session();
         let message = Soup.Message.new('GET', url);
 
-        session.queue_message(message, function (session, message) {
-            if (message.status_code !== 200) {
+        session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (session, result) => {
+            let data;
+            try {
+                data = session.send_and_read_finish(result);
+            } catch (e) {
                 reject('Failed to fetch data from ' + url);
                 return;
             }
 
-            let rawJson = message.response_body.data;
+            let rawJson = new TextDecoder().decode(data.get_data());
 
             let json;
             try {
@@ -141,24 +145,25 @@ function convertHtmlToPlainText(html) {
     return text;
 }
 
-function init() {}
+export default class WikiArtWallpaperExtension extends Extension {
+    enable() {
+        // Create and add the extension to the panel
+        myExtension = new WikiArtWallpaper(this);
+        Main.panel.addToStatusArea(this.uuid, myExtension);
+    }
 
-function enable() {
-    // Create and add the extension to the panel
-    myExtension = new MyExtension();
-    Main.panel.addToStatusArea("my-extension", myExtension);
+    disable() {
+        // Remove the extension from the panel
+        if (myExtension) {
+            myExtension.destroy();
+            myExtension = null;
+        }
+
+        // Remove any active timeout
+        if (timeoutId) {
+            GLib.Source.remove(timeoutId);
+            timeoutId = null;
+        }
+    }
 }
 
-function disable() {
-    // Remove the extension from the panel
-    if (myExtension) {
-        myExtension.destroy();
-        myExtension = null;
-    }
-    
-    // Remove any active timeout
-    if (timeoutId) {
-        GLib.Source.remove(timeoutId);
-        timeoutId = null;
-    }
-}

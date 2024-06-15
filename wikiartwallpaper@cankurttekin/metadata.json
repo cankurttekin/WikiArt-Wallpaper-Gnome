@@ -3,10 +3,8 @@
   "description": "A simple GNOME Shell extension to display WikiArt Artwork of the day. This extension is not affiliated, funded, or in any way associated with WikiArt.",
   "name": "WikiArt Wallpaper",
   "shell-version": [
-    "3.36",
-    "3.38",
-    "40",
-    "42"
+    "45",
+    "46"
   ],
   "url": "https://github.com/cankurttekin/WikiArt-Wallpaper-Gnome",
   "uuid": "wikiartwallpaper@cankurttekin",
