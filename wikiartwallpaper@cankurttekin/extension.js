@@ -12,16 +12,13 @@ import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
 const TrayIcon = 'wikiartwallpaper';
-const wallpaperSettings = new Gio.Settings({ schema: 'org.gnome.desktop.background' });
-let userPicturesDir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES);
-let WikiArtWallpaperDir = (userPicturesDir?userPicturesDir:userDesktopDir) + '/WikiArtWallpaper/';
-var currentImageUrl = '';
-var currentImageDescription = '';
-var currentImageTitle = '';
-var wallpaperAdjustment = 'scaled';
+let currentImageUrl = '';
+let currentImageDescription = '';
+let currentImageTitle = '';
+let wallpaperAdjustment = 'scaled';
 let color = '#000000';
-var timeoutId = null;
-var myExtension = null;
+let timeoutId = null;
+let myExtension = null;
 
 const WikiArtWallpaper = GObject.registerClass(
     class WikiArtWallpaper extends PanelMenu.Button {
@@ -50,30 +47,25 @@ const WikiArtWallpaper = GObject.registerClass(
                 wallpaperAdjustment = 'centered';
                 setWallpaperAdjustment(wallpaperAdjustment);
             });
-            //this.menu.addMenuItem(this.centeredMenuItem);
-
+            
             this.scaledMenuItem = new PopupMenu.PopupMenuItem("Scaled (Default)");
             this.scaledMenuItem.connect('activate', () => {
                 wallpaperAdjustment = 'scaled';
                 setWallpaperAdjustment(wallpaperAdjustment);
             });
-            //this.menu.addMenuItem(this.scaledMenuItem);
 
             this.zoomMenuItem = new PopupMenu.PopupMenuItem("Zoom");
             this.zoomMenuItem.connect('activate', () => {
                 wallpaperAdjustment = 'zoom';
                 setWallpaperAdjustment(wallpaperAdjustment);
             });
-            //this.menu.addMenuItem(this.zoomMenuItem);
-
-
-
+            
             this.subMenu = new PopupMenu.PopupSubMenuMenuItem('Change Wallpaper Adjustment');
             [this.centeredMenuItem, this.scaledMenuItem, this.zoomMenuItem]
                 .forEach(e => this.subMenu.menu.addMenuItem(e));
             this.menu.addMenuItem(this.subMenu);  
-              
-              
+
+            // Create menu item for setting background color
             this.setColorButton = new St.Button({
                 label: "Set Color for Background",
             });
@@ -82,18 +74,18 @@ const WikiArtWallpaper = GObject.registerClass(
             setColorButtonMenuItem.add_child(this.setColorButton);
             this.menu.addMenuItem(setColorButtonMenuItem);
             
-              // Create an input field for hex color
+            // Create input field for hex color
             this.colorEntry = new St.Entry({
                 style_class: 'color-entry',
                 can_focus: true,
-                hint_text: 'Enter hex color (default #000000)',
+                hint_text: 'Enter hex color (default: #000000)',
             });
-              
-              let colorEntryMenuItem = new PopupMenu.PopupBaseMenuItem({ reactive: false });
+            
+            let colorEntryMenuItem = new PopupMenu.PopupBaseMenuItem({ reactive: false });
             colorEntryMenuItem.add_child(this.colorEntry);
             this.menu.addMenuItem(colorEntryMenuItem);
-
-            // Create a Folder button
+            
+            // Create open image folder button
             this.folderMenuItem = new PopupMenu.PopupMenuItem("Open Image Folder");
             this.menu.addMenuItem(this.folderMenuItem);
             
@@ -101,30 +93,15 @@ const WikiArtWallpaper = GObject.registerClass(
                 openImageFolder();
             });
             
-            /*
-            this.setColorButton.connect('clicked', () => {
-                if(!this.colorEntry.get_text() || colorEntry.get_text() === '') {
-                    console.log('no color provided');
-                }
-                console.log(typeof this.colorEntry.get_text());
-                color = this.colorEntry.get_text();
-                setBackgroundColor(color);
-            });
-*/
-            
-            
-            
             // Connect the activate signal to set the background color
             this.colorEntry.clutter_text.connect('activate', () => {
                 let color = this.colorEntry.get_text();
                 setBackgroundColor(color);
             });
-
+            
             // Create a menu item to display the current image description
-            this.titleMenuItem = new PopupMenu.PopupMenuItem("Description of the current WikiArt Artwork will be displayed here after refresh.", { reactive: false });
-
+            this.titleMenuItem = new PopupMenu.PopupMenuItem("Info about artwork will be displayed here when refreshed.", { reactive: false });
             this.titleMenuItem.label.clutter_text.line_wrap = true;
-
             this.menu.addMenuItem(this.titleMenuItem);
 
             // Set a fixed size for the menu
@@ -139,6 +116,7 @@ const WikiArtWallpaper = GObject.registerClass(
                 currentImageUrl = myImageUrl;
                 currentImageDescription = myImageDescription;
                 currentImageTitle = myImageTitle;
+                renameFile(myImageTitle);
                 this._updateMenuItems();
             } catch (error) {
                 console.log('Failed to get wallpaper URL: ' + error);
@@ -151,40 +129,57 @@ const WikiArtWallpaper = GObject.registerClass(
     }
 );
 
-// 
-function openImageFolder() {
-    Gio.AppInfo.launch_default_for_uri('file:///' + WikiArtWallpaperDir, null);
-}
-
-function setBackgroundColor(color) {
-    //let wallpaperSettings = new Gio.Settings({ schema: 'org.gnome.desktop.background' });
-    console.log(color);
-    wallpaperSettings.set_string('primary-color', color);
-}
-
 function getArtworkApiUrl() {
     let randomIndex = Math.floor(Math.random() * 3810) + 1; // fix this later
     let artworkApi = `https://www.wikiart.org/en/app/home/ArtworkOfTheDay?direction=next&index=${randomIndex}`;
     return artworkApi;
 }
 
-function downloadAndSetWallpaper(urlToDownload, titleToSetFileName) {
-    console.log(titleToSetFileName);
+function downloadAndSetWallpaper(urlToDownload, titleToFileName) {
+    const WikiArtWallpaperDir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES) + '/WikiArtWallpaper/'; // REFACTOR THIS
+    console.log(WikiArtWallpaperDir);
+    console.log(titleToFileName);
     // Download the image
-    GLib.spawn_async(null, ['wget', '-O', WikiArtWallpaperDir + '/' + titleToSetFileName + '.jpg', urlToDownload], null, GLib.SpawnFlags.SEARCH_PATH, null);
+    //GLib.spawn_async(null, ['wget', '-O', (WikiArtWallpaperDir + titleToFileName + '.jpg'), urlToDownload], null, GLib.SpawnFlags.SEARCH_PATH, null);
+    GLib.spawn_async(null, ['wget', '-O', (WikiArtWallpaperDir + 'wallpaper.jpg'), urlToDownload], null, GLib.SpawnFlags.SEARCH_PATH, null);
 
     timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 5, () => {
         // Set the wallpaper
-        //let wallpaperSettings = new Gio.Settings({ schema: 'org.gnome.desktop.background' });
-        wallpaperSettings.set_string('picture-uri', 'file:///' + WikiArtWallpaperDir + '/' + titleToSetFileName + '.jpg');
-        setWallpaperAdjustment(wallpaperAdjustment);
+        let wallpaperSettings = new Gio.Settings({ schema: 'org.gnome.desktop.background' });
+        console.log('file://' + WikiArtWallpaperDir + 'wallpaper.jpg');
+        wallpaperSettings.set_string('picture-uri', ('file://' + WikiArtWallpaperDir + 'wallpaper.jpg'));
+        //wallpaperSettings.set_string('picture-uri', ('file://' + WikiArtWallpaperDir + titleToFileName + '.jpg'));
+        //renameFile(titleToFileName);
+        //setWallpaperAdjustment('centered');
         return GLib.SOURCE_REMOVE;
     });
 }
 
+function renameFile(imageTitle) {
+    try {
+        const WikiArtWallpaperDir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES) + '/WikiArtWallpaper/';
+        let file = Gio.File.new_for_path(WikiArtWallpaperDir + 'wallpaper.jpg');
+        let newFile = Gio.File.new_for_path(WikiArtWallpaperDir + imageTitle + '.jpg');
+        file.copy(newFile, Gio.FileCopyFlags.NONE, null, null);
+        log('File renamed successfully');
+    } catch (e) {
+        log('Error renaming file: ' + e.message);
+    }
+}
+
 function setWallpaperAdjustment(adjustmentMode) {
-    //let wallpaperSettings = new Gio.Settings({ schema: 'org.gnome.desktop.background' });
+    const wallpaperSettings = new Gio.Settings({ schema: 'org.gnome.desktop.background' });
     wallpaperSettings.set_string('picture-options', adjustmentMode);
+}
+
+function openImageFolder() {
+    const WikiArtWallpaperDir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES) + '/WikiArtWallpaper/'; // REFACTOR THIS
+    Gio.AppInfo.launch_default_for_uri('file:///' + WikiArtWallpaperDir, null);
+}
+
+function setBackgroundColor(color) {
+    const wallpaperSettings = new Gio.Settings({ schema: 'org.gnome.desktop.background' });
+    wallpaperSettings.set_string('primary-color', color);
 }
 
 function getWallpaperUrl(url) {
@@ -202,7 +197,6 @@ function getWallpaperUrl(url) {
             }
 
             let rawJson = new TextDecoder().decode(data.get_data());
-
             let json;
             try {
                 json = JSON.parse(JSON.parse(rawJson));
@@ -212,13 +206,14 @@ function getWallpaperUrl(url) {
             }
 
             if (json && json.ImageDescription && json.ImageDescription.Url && json.Title) {
+                let imageTitle = json.Title;
                 let imageUrl = json.ImageDescription.Url.slice(0, -10);
                 let imageDesc = 'Title: ' + json.Title + '\n';
                 imageDesc += 'Artist: ' + json.ArtistName + '\n';
                 imageDesc += 'Year: ' + json.CompletitionYear + '\n';
                 imageDesc += 'Description: ' + json.Description + '\n';
                 imageDesc = convertHtmlToPlainText(imageDesc);
-                let imageTitle = json.Title;
+                imageTitle = convertHtmlToPlainText(imageTitle)
                 resolve({ url: imageUrl, title: imageTitle, description: imageDesc });
             } else {
                 reject('ImageDescription, Url or Title property is missing');
