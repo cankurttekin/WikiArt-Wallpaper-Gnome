@@ -80,8 +80,19 @@ function downloadAndSetWallpaper(urlToDownload) {
     timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 5, () => {
         // Set the wallpaper
         let wallpaperSettings = new Gio.Settings({ schema: 'org.gnome.desktop.background' });
-        wallpaperSettings.set_string('picture-uri', 'file:///tmp/wallpaper.jpg');
-        setWallpaperAdjustment('centered');
+        
+        let uri = 'file:///tmp/wallpaper.jpg';
+
+	wallpaperSettings.set_string('picture-uri', 'file:///tmp/wallpaper.jpg');
+	//setWallpaperAdjustment('centered');
+        wallpaperSettings.set_string('picture-uri', uri);
+        try {
+            wallpaperSettings.set_string('picture-uri-dark', uri);
+        }
+        catch (e) {
+            log("Can't set wallpaper for dark mode - " + e);
+        }
+        
         return GLib.SOURCE_REMOVE;
     });
 }
