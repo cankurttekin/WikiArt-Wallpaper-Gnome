@@ -9,6 +9,10 @@ var currentImageUrl = '';
 var currentImageDescription = '';
 var timeoutId = null;
 var myExtension = null;
+
+let wallpaperAdjustment = 'scaled';
+let color = '#000000';
+
 const TrayIcon = 'wikiartwallpaper';
 
 const ExtensionUtils = imports.misc.extensionUtils;
@@ -33,7 +37,42 @@ var MyExtension = GObject.registerClass(
             });
             this.menu.addMenuItem(this.refreshMenuItem);
 
-            // Create a menu item to display the current image URL and title
+
+
+	    // Create menu items for wallpaper adjustments
+            this.centeredMenuItem = new PopupMenu.PopupMenuItem("Centered");
+            this.centeredMenuItem.connect('activate', () => {
+                wallpaperAdjustment = 'centered';
+                setWallpaperAdjustment(wallpaperAdjustment);
+            });
+            
+            this.scaledMenuItem = new PopupMenu.PopupMenuItem("Scaled (Default)");
+            this.scaledMenuItem.connect('activate', () => {
+                wallpaperAdjustment = 'scaled';
+                setWallpaperAdjustment(wallpaperAdjustment);
+            });
+
+            this.zoomMenuItem = new PopupMenu.PopupMenuItem("Zoom");
+            this.zoomMenuItem.connect('activate', () => {
+                wallpaperAdjustment = 'zoom';
+                setWallpaperAdjustment(wallpaperAdjustment);
+            });
+            
+            this.subMenu = new PopupMenu.PopupSubMenuMenuItem('Change Wallpaper Adjustment');
+            [this.centeredMenuItem, this.scaledMenuItem, this.zoomMenuItem]
+                .forEach(e => this.subMenu.menu.addMenuItem(e));
+            this.menu.addMenuItem(this.subMenu);  
+
+            // Create open image folder button
+            this.folderMenuItem = new PopupMenu.PopupMenuItem("Open Image Folder");
+            this.menu.addMenuItem(this.folderMenuItem);
+            
+            this.folderMenuItem.connect('activate', () => {
+                openImageFolder();
+            });
+
+
+            // Create a menu item to display the current current image description
             this.titleMenuItem = new PopupMenu.PopupMenuItem("Info about artwork will be displayed here when refreshed.", { reactive: false });
             //this.urlMenuItem = new PopupMenu.PopupMenuItem("", { reactive: false });
 
@@ -100,6 +139,11 @@ function downloadAndSetWallpaper(urlToDownload) {
 function setWallpaperAdjustment(adjustmentMode) {
     let wallpaperSettings = new Gio.Settings({ schema: 'org.gnome.desktop.background' });
     wallpaperSettings.set_string('picture-options', adjustmentMode);
+}
+
+function openImageFolder() {
+    const WikiArtWallpaperDir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES) + '/WikiArtWallpaper/'; // REFACTOR THIS
+    Gio.AppInfo.launch_default_for_uri('file:///tmp', null);
 }
 
 function getWallpaperUrl(url) {
