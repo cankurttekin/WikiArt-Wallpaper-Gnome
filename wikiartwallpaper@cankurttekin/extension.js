@@ -134,6 +134,8 @@ function getArtworkApiUrl() {
     let artworkApi = `https://www.wikiart.org/en/app/home/ArtworkOfTheDay?direction=next&index=${randomIndex}`;
     return artworkApi;
 }
+    
+
 
 function downloadAndSetWallpaper(urlToDownload, titleToFileName) {
     const WikiArtWallpaperDir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES) + '/WikiArtWallpaper/'; // REFACTOR THIS
@@ -146,14 +148,24 @@ function downloadAndSetWallpaper(urlToDownload, titleToFileName) {
     timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 5, () => {
         // Set the wallpaper
         let wallpaperSettings = new Gio.Settings({ schema: 'org.gnome.desktop.background' });
-        console.log('file://' + WikiArtWallpaperDir + 'wallpaper.jpg');
-        wallpaperSettings.set_string('picture-uri', ('file://' + WikiArtWallpaperDir + 'wallpaper.jpg'));
+        let uri = 'file://' + WikiArtWallpaperDir + 'wallpaper.jpg';
+        //console.log('file://' + WikiArtWallpaperDir + 'wallpaper.jpg');
+        wallpaperSettings.set_string('picture-uri', uri);
+        try {
+            wallpaperSettings.set_string('picture-uri-dark', uri);
+        }
+        catch (e) {
+            log("Can't set wallpaper for dark mode - " + e);
+        }
         //wallpaperSettings.set_string('picture-uri', ('file://' + WikiArtWallpaperDir + titleToFileName + '.jpg'));
         //renameFile(titleToFileName);
         //setWallpaperAdjustment('centered');
         return GLib.SOURCE_REMOVE;
     });
 }
+
+
+
 
 function renameFile(imageTitle) {
     try {
@@ -166,6 +178,8 @@ function renameFile(imageTitle) {
         log('Error renaming file: ' + e.message);
     }
 }
+
+
 
 function setWallpaperAdjustment(adjustmentMode) {
     const wallpaperSettings = new Gio.Settings({ schema: 'org.gnome.desktop.background' });
