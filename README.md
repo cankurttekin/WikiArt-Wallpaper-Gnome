@@ -18,7 +18,7 @@ This extension supports GNOME Shell `3.4?` to `46` (except 43 and 44, needs test
 |Branch                   |Version|Compatible GNOME version|
 |-------------------------|:-----:|------------------------|
 | master                  |    5  | GNOME 45 & 46          |
-| gnome-shell-before-45   |    3  | GNOME 3.4 -> 42        |
+| gnome-shell-before-45   |    3.1  | GNOME 3.4 -> 44        |
 
 _Tested on GNOME 42 & 46._
 
