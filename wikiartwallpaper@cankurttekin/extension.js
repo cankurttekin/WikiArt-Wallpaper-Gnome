@@ -1,3 +1,20 @@
+/* extension.js
+ *
+ * WikiArt GNOME Shell Extension is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * WikiArt GNOME Shell Extension is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with WikiArt GNOME Shell Extension.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * License: GPL-3.0
+ */
 const { Shell } = imports.gi;
 import St from "gi://St";
 import Gio from "gi://Gio";
@@ -18,8 +35,8 @@ const TrayIcon = 'wikiartwallpaper';
 let currentImageUrl = '';
 let currentImageDescription = '';
 let currentImageTitle = '';
-let wallpaperAdjustment = 'scaled';
-let color = '#000000';
+let wallpaperAdjustment = 'scaled'; // Default wallpaper adjustment mode
+let color = '#000000'; // Default background color
 let timeoutId = null;
 let myExtension = null;
 
@@ -29,7 +46,8 @@ const WikiArtWallpaper = GObject.registerClass(
             super._init(0.0, "WikiArtWallpaper");
 
             this.extension = extension;
-
+            
+            // Set up the icon for the tray button
             this.icon = new St.Icon({
                 style_class: "system-status-icon",
             });
@@ -37,14 +55,14 @@ const WikiArtWallpaper = GObject.registerClass(
             this.icon.gicon = Gio.icon_new_for_string(`${this.extension.path}/icons/${TrayIcon}.svg`);
             this.add_child(this.icon);
 
-            // Create a refresh button
+            // Create and connect a "Refresh" button to update the wallpaper
             this.refreshMenuItem = new PopupMenu.PopupMenuItem("Refresh");
             this.refreshMenuItem.connect('activate', () => {
                 this._refreshWallpaper();
             });
             this.menu.addMenuItem(this.refreshMenuItem);
 
-            // Create menu items for wallpaper adjustment
+            // Create menu items for adjusting wallpaper settings
             this.wallpaperMenuItem = new PopupMenu.PopupMenuItem("Wallpaper");
             this.wallpaperMenuItem.connect('activate', () => {
                 wallpaperAdjustment = 'wallpaper';
@@ -80,7 +98,8 @@ const WikiArtWallpaper = GObject.registerClass(
                 wallpaperAdjustment = 'spanned';
                 setWallpaperAdjustment(wallpaperAdjustment);
             });
-            
+
+            // Add all adjustment options to a submenu
             this.subMenu = new PopupMenu.PopupSubMenuMenuItem('Change Wallpaper Adjustment');
             [this.wallpaperMenuItem, this.centeredMenuItem, this.scaledMenuItem, this.strechedMenuItem, this.zoomMenuItem, this.spannedMenuItem]
                 .forEach(e => this.subMenu.menu.addMenuItem(e));
@@ -90,7 +109,8 @@ const WikiArtWallpaper = GObject.registerClass(
             this.setColorButton = new St.Button({
                 label: "Set Color for Background",
             });
-            
+
+            // Create a button to set a custom background color
             let setColorButtonMenuItem = new PopupMenu.PopupBaseMenuItem({ reactive: false });
             setColorButtonMenuItem.add_child(this.setColorButton);
             this.menu.addMenuItem(setColorButtonMenuItem);
@@ -101,12 +121,13 @@ const WikiArtWallpaper = GObject.registerClass(
                 can_focus: true,
                 hint_text: 'Enter hex color (default: #000000)',
             });
-            
+
+            // Create an input field for entering a hex color value
             let colorEntryMenuItem = new PopupMenu.PopupBaseMenuItem({ reactive: false });
             colorEntryMenuItem.add_child(this.colorEntry);
             this.menu.addMenuItem(colorEntryMenuItem);
             
-            // Create open image folder button
+            // Create a button to open the image folder
             this.folderMenuItem = new PopupMenu.PopupMenuItem("Open Image Folder");
             this.menu.addMenuItem(this.folderMenuItem);
             
@@ -149,7 +170,7 @@ const WikiArtWallpaper = GObject.registerClass(
                 this.titleMenuItem.label.text = 'Failed to fetch artwork data.';
             }
         }
-
+        // Update the menu items with the current image description
         _updateMenuItems() {
             this.titleMenuItem.label.text = currentImageDescription;
         }
