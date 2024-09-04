@@ -255,7 +255,6 @@ function setWallpaperAdjustment(adjustmentMode) {
 }
 
 function openImageFolder() {
-    //const WikiArtWallpaperDir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES) + '/WikiArtWallpaper/'; // REFACTOR THIS
     Gio.AppInfo.launch_default_for_uri('file:///' + WIKIART_WALLPAPER_DIR, null);
 }
 
