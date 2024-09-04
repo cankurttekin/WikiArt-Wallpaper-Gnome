@@ -1,0 +1,37 @@
+name: Zip and Release
+
+on:
+  push:
+    paths:
+      - 'wikiart@cankurttekin/**'
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Extract version from metadata.json
+      id: extract_version
+      run: |
+        VERSION=$(jq -r '.version' pinit@cankurttekin/metadata.json)
+        echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
+
+    - name: Zip the wikiart@cankurttekin directory
+      run: zip -r wikiart@cankurttekin.zip wikiart@cankurttekin
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ env.RELEASE_VERSION }}
+        body: "This release was automatically generated, might be untested and only FOR GNOME 45 & 46."
+        files: wikiart@cankurttekin.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
