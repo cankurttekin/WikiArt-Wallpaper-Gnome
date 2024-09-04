@@ -148,24 +148,16 @@ function downloadAndSetWallpaper(urlToDownload, titleToFileName) {
     timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 5, () => {
         // Set the wallpaper
         let wallpaperSettings = new Gio.Settings({ schema: 'org.gnome.desktop.background' });
-        let uri = 'file://' + WikiArtWallpaperDir + 'wallpaper.jpg';
-        //console.log('file://' + WikiArtWallpaperDir + 'wallpaper.jpg');
-        wallpaperSettings.set_string('picture-uri', uri);
+        wallpaperSettings.set_string('picture-uri', ('file://' + WikiArtWallpaperDir + 'wallpaper.jpg'));
         try {
-            wallpaperSettings.set_string('picture-uri-dark', uri);
+            wallpaperSettings.set_string('picture-uri-dark', ('file://' + WikiArtWallpaperDir + 'wallpaper.jpg'));
         }
         catch (e) {
             log("Can't set wallpaper for dark mode - " + e);
         }
-        //wallpaperSettings.set_string('picture-uri', ('file://' + WikiArtWallpaperDir + titleToFileName + '.jpg'));
-        //renameFile(titleToFileName);
-        //setWallpaperAdjustment('centered');
         return GLib.SOURCE_REMOVE;
     });
 }
-
-
-
 
 function renameFile(imageTitle) {
     try {
@@ -178,8 +170,6 @@ function renameFile(imageTitle) {
         log('Error renaming file: ' + e.message);
     }
 }
-
-
 
 function setWallpaperAdjustment(adjustmentMode) {
     const wallpaperSettings = new Gio.Settings({ schema: 'org.gnome.desktop.background' });
