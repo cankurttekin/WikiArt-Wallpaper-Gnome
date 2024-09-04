@@ -11,6 +11,9 @@ import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
+const WIKIART_WALLPAPER_DIR = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES) + '/WikiArtWallpaper/';
+const MAX_ARTWORK_INDEX = 3810;
+
 const TrayIcon = 'wikiartwallpaper';
 let currentImageUrl = '';
 let currentImageDescription = '';
@@ -25,7 +28,7 @@ const WikiArtWallpaper = GObject.registerClass(
         _init(extension) {
             super._init(0.0, "WikiArtWallpaper");
 
-            this.extension = extension;  // Store the extension object
+            this.extension = extension;
 
             this.icon = new St.Icon({
                 style_class: "system-status-icon",
@@ -41,7 +44,13 @@ const WikiArtWallpaper = GObject.registerClass(
             });
             this.menu.addMenuItem(this.refreshMenuItem);
 
-            // Create menu items for wallpaper adjustments
+            // Create menu items for wallpaper adjustment
+            this.wallpaperMenuItem = new PopupMenu.PopupMenuItem("Wallpaper");
+            this.wallpaperMenuItem.connect('activate', () => {
+                wallpaperAdjustment = 'wallpaper';
+                setWallpaperAdjustment(wallpaperAdjustment);
+            });
+            
             this.centeredMenuItem = new PopupMenu.PopupMenuItem("Centered");
             this.centeredMenuItem.connect('activate', () => {
                 wallpaperAdjustment = 'centered';
@@ -53,6 +62,12 @@ const WikiArtWallpaper = GObject.registerClass(
                 wallpaperAdjustment = 'scaled';
                 setWallpaperAdjustment(wallpaperAdjustment);
             });
+            
+            this.strechedMenuItem = new PopupMenu.PopupMenuItem("Streched");
+            this.strechedMenuItem.connect('activate', () => {
+                wallpaperAdjustment = 'streched';
+                setWallpaperAdjustment(wallpaperAdjustment);
+            });
 
             this.zoomMenuItem = new PopupMenu.PopupMenuItem("Zoom");
             this.zoomMenuItem.connect('activate', () => {
@@ -60,8 +75,14 @@ const WikiArtWallpaper = GObject.registerClass(
                 setWallpaperAdjustment(wallpaperAdjustment);
             });
             
+            this.spannedMenuItem = new PopupMenu.PopupMenuItem("Spanned");
+            this.spannedMenuItem.connect('activate', () => {
+                wallpaperAdjustment = 'spanned';
+                setWallpaperAdjustment(wallpaperAdjustment);
+            });
+            
             this.subMenu = new PopupMenu.PopupSubMenuMenuItem('Change Wallpaper Adjustment');
-            [this.centeredMenuItem, this.scaledMenuItem, this.zoomMenuItem]
+            [this.wallpaperMenuItem, this.centeredMenuItem, this.scaledMenuItem, this.strechedMenuItem, this.zoomMenuItem, this.spannedMenuItem]
                 .forEach(e => this.subMenu.menu.addMenuItem(e));
             this.menu.addMenuItem(this.subMenu);  
 
@@ -101,6 +122,7 @@ const WikiArtWallpaper = GObject.registerClass(
             
             // Create a menu item to display the current image description
             this.titleMenuItem = new PopupMenu.PopupMenuItem("Info about artwork will be displayed here when refreshed.", { reactive: false });
+            //this.titleMenuItem.label = new St.Label({ text: "Description here", x_align: Clutter.ActorAlign.START });
             this.titleMenuItem.label.clutter_text.line_wrap = true;
             this.menu.addMenuItem(this.titleMenuItem);
 
@@ -112,7 +134,11 @@ const WikiArtWallpaper = GObject.registerClass(
             let myUrl = getArtworkApiUrl();
             try {
                 let { url: myImageUrl, title: myImageTitle, description: myImageDescription } = await getWallpaperUrl(myUrl);
-                downloadAndSetWallpaper(myImageUrl, myImageTitle);
+                if (!myImageUrl || !myImageTitle || !myImageDescription) {
+                    log('Incomplete data received from the API');
+                    return;
+                }
+                downloadWallpaper(myImageUrl, myImageTitle);
                 currentImageUrl = myImageUrl;
                 currentImageDescription = myImageDescription;
                 currentImageTitle = myImageTitle;
@@ -120,6 +146,7 @@ const WikiArtWallpaper = GObject.registerClass(
                 this._updateMenuItems();
             } catch (error) {
                 console.log('Failed to get wallpaper URL: ' + error);
+                this.titleMenuItem.label.text = 'Failed to fetch artwork data.';
             }
         }
 
@@ -130,40 +157,69 @@ const WikiArtWallpaper = GObject.registerClass(
 );
 
 function getArtworkApiUrl() {
-    let randomIndex = Math.floor(Math.random() * 3810) + 1; // fix this later
+    let randomIndex = Math.floor(Math.random() * MAX_ARTWORK_INDEX) + 1;
     let artworkApi = `https://www.wikiart.org/en/app/home/ArtworkOfTheDay?direction=next&index=${randomIndex}`;
     return artworkApi;
 }
-    
 
+function downloadWallpaper(urlToDownload, titleToFileName) {
+    const filePath = WIKIART_WALLPAPER_DIR + 'wallpaper.jpg';
 
-function downloadAndSetWallpaper(urlToDownload, titleToFileName) {
-    const WikiArtWallpaperDir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES) + '/WikiArtWallpaper/'; // REFACTOR THIS
-    console.log(WikiArtWallpaperDir);
-    console.log(titleToFileName);
-    // Download the image
-    //GLib.spawn_async(null, ['wget', '-O', (WikiArtWallpaperDir + titleToFileName + '.jpg'), urlToDownload], null, GLib.SpawnFlags.SEARCH_PATH, null);
-    GLib.spawn_async(null, ['wget', '-O', (WikiArtWallpaperDir + 'wallpaper.jpg'), urlToDownload], null, GLib.SpawnFlags.SEARCH_PATH, null);
+    try {
+        let [success, stdout, stderr, exitStatus] = GLib.spawn_sync(
+            null, ['wget', '-O', filePath, urlToDownload], null, GLib.SpawnFlags.SEARCH_PATH, null
+        );
 
-    timeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, 5, () => {
-        // Set the wallpaper
-        let wallpaperSettings = new Gio.Settings({ schema: 'org.gnome.desktop.background' });
-        wallpaperSettings.set_string('picture-uri', ('file://' + WikiArtWallpaperDir + 'wallpaper.jpg'));
-        try {
-            wallpaperSettings.set_string('picture-uri-dark', ('file://' + WikiArtWallpaperDir + 'wallpaper.jpg'));
+        if (exitStatus === 0) {
+            log('Image downloaded successfully.');
+            // Verify if the file is a valid image before setting it as wallpaper
+            if (isImageFileValid(filePath)) {
+                setWallpaper(filePath);
+            } else {
+                log('Downloaded file is not a valid image format.');
+            }
+        } else {
+            log('Download failed with status: ' + exitStatus);
         }
-        catch (e) {
+
+    } catch (e) {
+        log('Error during download process: ' + e.message);
+    }
+}
+
+function isImageFileValid(filePath) {
+    try {
+        let file = Gio.File.new_for_path(filePath);
+        let fileInfo = file.query_info('standard::content-type', Gio.FileQueryInfoFlags.NONE, null);
+        let contentType = fileInfo.get_content_type();
+
+        // Check if the content type is a valid image format
+        return contentType.startsWith('image/');
+    } catch (e) {
+        log('Error checking file content type: ' + e.message);
+        return false;
+    }
+}
+
+function setWallpaper(filePath) {
+    try {
+        let wallpaperSettings = new Gio.Settings({ schema: 'org.gnome.desktop.background' });
+        wallpaperSettings.set_string('picture-uri', 'file://' + filePath);
+
+        try {
+            wallpaperSettings.set_string('picture-uri-dark', 'file://' + filePath);
+        } catch (e) {
             log("Can't set wallpaper for dark mode - " + e);
         }
-        return GLib.SOURCE_REMOVE;
-    });
+    } catch (e) {
+        log('Error setting wallpaper: ' + e.message);
+    }
 }
 
 function renameFile(imageTitle) {
     try {
-        const WikiArtWallpaperDir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES) + '/WikiArtWallpaper/';
-        let file = Gio.File.new_for_path(WikiArtWallpaperDir + 'wallpaper.jpg');
-        let newFile = Gio.File.new_for_path(WikiArtWallpaperDir + imageTitle + '.jpg');
+        let file = Gio.File.new_for_path(WIKIART_WALLPAPER_DIR + 'wallpaper.jpg');
+        let newFile = Gio.File.new_for_path(WIKIART_WALLPAPER_DIR + imageTitle + '.jpg');
         file.copy(newFile, Gio.FileCopyFlags.NONE, null, null);
         log('File renamed successfully');
     } catch (e) {
@@ -177,8 +233,8 @@ function setWallpaperAdjustment(adjustmentMode) {
 }
 
 function openImageFolder() {
-    const WikiArtWallpaperDir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES) + '/WikiArtWallpaper/'; // REFACTOR THIS
-    Gio.AppInfo.launch_default_for_uri('file:///' + WikiArtWallpaperDir, null);
+    //const WikiArtWallpaperDir = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES) + '/WikiArtWallpaper/'; // REFACTOR THIS
+    Gio.AppInfo.launch_default_for_uri('file:///' + WIKIART_WALLPAPER_DIR, null);
 }
 
 function setBackgroundColor(color) {
@@ -195,8 +251,12 @@ function getWallpaperUrl(url) {
             let data;
             try {
                 data = session.send_and_read_finish(result);
+                if (message.status_code !== 200) {
+                    reject('Non-OK HTTP status: ' + message.status_code);
+                return;
+                }
             } catch (e) {
-                reject('Failed to fetch data from ' + url);
+                reject('Failed to fetch data, Error - ' + e.message);
                 return;
             }
 
@@ -258,6 +318,12 @@ export default class WikiArtWallpaperExtension extends Extension {
         if (timeoutId) {
             GLib.Source.remove(timeoutId);
             timeoutId = null;
+        }
+        
+        // Clean up any active Soup sessions if needed
+        if (this.session) {
+            this.session.abort();
+            this.session = null;
         }
     }
 }
