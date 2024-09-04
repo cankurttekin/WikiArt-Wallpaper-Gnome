@@ -15,6 +15,7 @@
  *
  * License: GPL-3.0
  */
+
 const { Shell } = imports.gi;
 import St from "gi://St";
 import Gio from "gi://Gio";
