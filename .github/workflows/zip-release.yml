@@ -3,7 +3,7 @@ name: Zip and Release
 on:
   push:
     paths:
-      - 'wikiart@cankurttekin/**'
+      - 'wikiartwallpaper@cankurttekin/**'
     branches:
       - main
 
@@ -24,14 +24,14 @@ jobs:
         VERSION=$(jq -r '.version' pinit@cankurttekin/metadata.json)
         echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
 
-    - name: Zip the wikiart@cankurttekin directory
-      run: zip -r wikiart@cankurttekin.zip wikiart@cankurttekin
+    - name: Zip the wikiartwallpaper@cankurttekin directory
+      run: zip -r wikiartwallpaper@cankurttekin.zip wikiartwallpaper@cankurttekin
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
         tag_name: v${{ env.RELEASE_VERSION }}
         body: "This release was automatically generated, might be untested and only FOR GNOME 45 & 46."
-        files: wikiart@cankurttekin.zip
+        files: wikiartwallpaper@cankurttekin.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
