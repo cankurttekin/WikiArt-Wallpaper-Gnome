@@ -21,7 +21,7 @@ jobs:
     - name: Extract version from metadata.json
       id: extract_version
       run: |
-        VERSION=$(jq -r '.version' pinit@cankurttekin/metadata.json)
+        VERSION=$(jq -r '.version' wikiartwallpaper@cankurttekin/metadata.json)
         echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
 
     - name: Zip the wikiartwallpaper@cankurttekin directory
