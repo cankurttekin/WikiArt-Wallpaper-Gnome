@@ -24,8 +24,10 @@ jobs:
         VERSION=$(jq -r '.version' wikiartwallpaper@cankurttekin/metadata.json)
         echo "RELEASE_VERSION=$VERSION" >> $GITHUB_ENV
 
-    - name: Zip the wikiartwallpaper@cankurttekin directory
-      run: zip -r wikiartwallpaper@cankurttekin.zip wikiartwallpaper@cankurttekin
+    - name: Zip the wikiartwallpaper@cankurttekin directory contents
+      run: |
+        cd wikiartwallpaper@cankurttekin
+        zip -r ../wikiartwallpaper@cankurttekin.zip .
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
