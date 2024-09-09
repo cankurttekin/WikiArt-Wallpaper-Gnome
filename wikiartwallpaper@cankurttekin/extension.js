@@ -15,7 +15,7 @@
  *
  * License: GPL-3.0
  */
-import { Shell } from 'gi://Shell';
+ 
 import St from "gi://St";
 import Gio from "gi://Gio";
 import Clutter from "gi://Clutter";
@@ -154,7 +154,7 @@ const WikiArtWallpaper = GObject.registerClass(
         async _refreshWallpaper() {
             let myUrl = getArtworkApiUrl();
             try {
-                let { url: myImageUrl, title: myImageTitle, description: myImageDescription } = await getWallpaperUrl(myUrl);
+                let { url: myImageUrl, title: myImageTitle, description: myImageDescription } = await getWallpaperUrl(myUrl, this.session);
                 if (!myImageUrl || !myImageTitle || !myImageDescription) {
                     log('Incomplete data received from the API');
                     return;
@@ -185,7 +185,18 @@ function getArtworkApiUrl() {
 
 function downloadWallpaper(urlToDownload, titleToFileName) {
     const filePath = WIKIART_WALLPAPER_DIR + 'wallpaper.jpg';
-
+    
+    let dir = Gio.File.new_for_path(WIKIART_WALLPAPER_DIR);
+    if (!dir.query_exists(null)) {
+        try {
+            dir.make_directory_with_parents(null);
+            log("Created directory: " + filePath);
+        } catch (e) {
+            log("Failed to create directory: " + e);
+            return;
+        }
+    }
+    
     try {
         let [success, stdout, stderr, exitStatus] = GLib.spawn_sync(
             null, ['wget', '-O', filePath, urlToDownload], null, GLib.SpawnFlags.SEARCH_PATH, null
@@ -194,7 +205,7 @@ function downloadWallpaper(urlToDownload, titleToFileName) {
         if (exitStatus === 0) {
             log('Image downloaded successfully.');
             // Verify if the file is a valid image before setting it as wallpaper
-            if (isImageFileValid(filePath)) {
+            if (isImageFileValid(filePath) && dir.query_exists(null)) {
                 setWallpaper(filePath);
             } else {
                 log('Downloaded file is not a valid image format.');
@@ -229,6 +240,7 @@ function setWallpaper(filePath) {
 
         try {
             wallpaperSettings.set_string('picture-uri-dark', 'file://' + filePath);
+            log("Wallpaper set successfully " + filePath);
         } catch (e) {
             log("Can't set wallpaper for dark mode - " + e);
         }
@@ -262,7 +274,7 @@ function setBackgroundColor(color) {
     wallpaperSettings.set_string('primary-color', color);
 }
 
-function getWallpaperUrl(url) {
+function getWallpaperUrl(url, session) {
     return new Promise((resolve, reject) => {
         let message = Soup.Message.new('GET', url);
 
