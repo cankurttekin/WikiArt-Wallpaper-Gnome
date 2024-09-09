@@ -15,8 +15,7 @@
  *
  * License: GPL-3.0
  */
-
-const { Shell } = imports.gi;
+import { Shell } from 'gi://Shell';
 import St from "gi://St";
 import Gio from "gi://Gio";
 import Clutter from "gi://Clutter";
@@ -29,7 +28,7 @@ import * as PanelMenu from 'resource:///org/gnome/shell/ui/panelMenu.js';
 import * as PopupMenu from 'resource:///org/gnome/shell/ui/popupMenu.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 
-const WIKIART_WALLPAPER_DIR = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES) + '/WikiArtWallpaper/';
+let WIKIART_WALLPAPER_DIR = null;
 const MAX_ARTWORK_INDEX = 3810;
 
 const TrayIcon = 'wikiartwallpaper';
@@ -47,7 +46,7 @@ const WikiArtWallpaper = GObject.registerClass(
             super._init(0.0, "WikiArtWallpaper");
 
             this.extension = extension;
-            
+            this.session = extension.session;
             // Set up the icon for the tray button
             this.icon = new St.Icon({
                 style_class: "system-status-icon",
@@ -82,9 +81,9 @@ const WikiArtWallpaper = GObject.registerClass(
                 setWallpaperAdjustment(wallpaperAdjustment);
             });
             
-            this.strechedMenuItem = new PopupMenu.PopupMenuItem("Streched");
-            this.strechedMenuItem.connect('activate', () => {
-                wallpaperAdjustment = 'streched';
+            this.stretchedMenuItem = new PopupMenu.PopupMenuItem("Stretched");
+            this.stretchedMenuItem.connect('activate', () => {
+                wallpaperAdjustment = 'stretched';
                 setWallpaperAdjustment(wallpaperAdjustment);
             });
 
@@ -102,7 +101,7 @@ const WikiArtWallpaper = GObject.registerClass(
 
             // Add all adjustment options to a submenu
             this.subMenu = new PopupMenu.PopupSubMenuMenuItem('Change Wallpaper Adjustment');
-            [this.wallpaperMenuItem, this.centeredMenuItem, this.scaledMenuItem, this.strechedMenuItem, this.zoomMenuItem, this.spannedMenuItem]
+            [this.wallpaperMenuItem, this.centeredMenuItem, this.scaledMenuItem, this.stretchedMenuItem, this.zoomMenuItem, this.spannedMenuItem]
                 .forEach(e => this.subMenu.menu.addMenuItem(e));
             this.menu.addMenuItem(this.subMenu);  
 
@@ -265,7 +264,6 @@ function setBackgroundColor(color) {
 
 function getWallpaperUrl(url) {
     return new Promise((resolve, reject) => {
-        let session = new Soup.Session();
         let message = Soup.Message.new('GET', url);
 
         session.send_and_read_async(message, GLib.PRIORITY_DEFAULT, null, (session, result) => {
@@ -323,7 +321,9 @@ function convertHtmlToPlainText(html) {
 
 export default class WikiArtWallpaperExtension extends Extension {
     enable() {
+        this.session = new Soup.Session();
         // Create and add the extension to the panel
+        WIKIART_WALLPAPER_DIR = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES) + '/WikiArtWallpaper/';
         myExtension = new WikiArtWallpaper(this);
         Main.panel.addToStatusArea(this.uuid, myExtension);
     }
@@ -334,17 +334,6 @@ export default class WikiArtWallpaperExtension extends Extension {
             myExtension.destroy();
             myExtension = null;
         }
-
-        // Remove any active timeout
-        if (timeoutId) {
-            GLib.Source.remove(timeoutId);
-            timeoutId = null;
-        }
-        
-        // Clean up any active Soup sessions if needed
-        if (this.session) {
-            this.session.abort();
-            this.session = null;
-        }
+        this.session = null;
     }
 }
