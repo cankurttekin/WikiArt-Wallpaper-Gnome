@@ -46,16 +46,16 @@ const WikiArtWallpaper = GObject.registerClass(
             super._init(0.0, "WikiArtWallpaper");
 
             this.extension = extension;
-            this.session = extension.session;
-            // Set up the icon for the tray button
+            this.session = new Soup.Session();
+
+	    // Set up the icon for the tray button
             this.icon = new St.Icon({
                 style_class: "system-status-icon",
             });
-
             this.icon.gicon = Gio.icon_new_for_string(`${this.extension.path}/icons/${TrayIcon}.svg`);
             this.add_child(this.icon);
 
-            // Create and connect a "Refresh" button to update the wallpaper
+            // Create and connect a "Refresh" for updating the wallpaper
             this.refreshMenuItem = new PopupMenu.PopupMenuItem("Refresh");
             this.refreshMenuItem.connect('activate', () => {
                 this._refreshWallpaper();
@@ -143,12 +143,11 @@ const WikiArtWallpaper = GObject.registerClass(
             
             // Create a menu item to display the current image description
             this.titleMenuItem = new PopupMenu.PopupMenuItem("Info about artwork will be displayed here when refreshed.", { reactive: false });
-            //this.titleMenuItem.label = new St.Label({ text: "Description here", x_align: Clutter.ActorAlign.START });
             this.titleMenuItem.label.clutter_text.line_wrap = true;
             this.menu.addMenuItem(this.titleMenuItem);
 
             // Set a fixed size for the menu
-            this.menu.actor.width = 500; // Fixed width in pixels
+            this.menu.actor.width = 500; // refactor this
         }
 
         async _refreshWallpaper() {
@@ -173,6 +172,10 @@ const WikiArtWallpaper = GObject.registerClass(
         // Update the menu items with the current image description
         _updateMenuItems() {
             this.titleMenuItem.label.text = currentImageDescription;
+        }
+	destroy() {
+            this.session.abort();
+            super.destroy();
         }
     }
 );
@@ -333,7 +336,6 @@ function convertHtmlToPlainText(html) {
 
 export default class WikiArtWallpaperExtension extends Extension {
     enable() {
-        this.session = new Soup.Session();
         // Create and add the extension to the panel
         WIKIART_WALLPAPER_DIR = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_PICTURES) + '/WikiArtWallpaper/';
         myExtension = new WikiArtWallpaper(this);
@@ -346,6 +348,5 @@ export default class WikiArtWallpaperExtension extends Extension {
             myExtension.destroy();
             myExtension = null;
         }
-        this.session = null;
     }
 }
