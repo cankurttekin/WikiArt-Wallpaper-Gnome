@@ -1,6 +1,6 @@
 # WikiArt Wallpaper GNOME Extension
- [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
- <br>
+ [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0) [![Zip and Release](https://github.com/cankurttekin/WikiArt-Wallpaper-Gnome/actions/workflows/zip-release.yml/badge.svg)](https://github.com/cankurttekin/WikiArt-Wallpaper-Gnome/actions/workflows/zip-release.yml)
+  <br>
  GNOME Shell Extension that changes your desktop wallpaper to WikiArt's Artwork of the day with single click.
  
 It creates a menu in tray containing the title, artist, description of the image and some quick settings for background.
@@ -17,8 +17,8 @@ This extension supports GNOME Shell `3.4?` to `46`.
 
 |Branch                   |Version|Compatible GNOME version|
 |-------------------------|:-----:|------------------------|
-| master                  |    5  | GNOME 45 & 46          |
-| gnome-shell-before-45   |    3.1  | GNOME 3.4 -> 44        |
+| master                  |    11  | GNOME 45 & 46          |
+| [gnome-shell-before-45](https://github.com/cankurttekin/WikiArt-Wallpaper-Gnome/tree/gnome-shell-before-45)   |    [3.1(8)](https://github.com/cankurttekin/WikiArt-Wallpaper-Gnome/releases/tag/3.1)  | GNOME 3.4 -> 44        |
 
 _Tested on GNOME 42 & 46._
 
@@ -36,4 +36,4 @@ You can get this extension from [extensions.gnome.org](https://extensions.gnome.
 
 # Contribute
 You can help with development by contributing code, testing on other GNOME versions and reporting issues.<br>
-Alternatively, you can consider supporting the WikiArt project that makes this extension possible, [WikiArt.org - How to contribute](https://www.wikiart.org/en/how-to-contribute).
+Alternatively, you can consider supporting the WikiArt project, [WikiArt.org - How to contribute](https://www.wikiart.org/en/how-to-contribute).
