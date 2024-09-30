@@ -3,8 +3,7 @@
   <br>
  GNOME Shell Extension that changes your desktop wallpaper to WikiArt's Artwork of the day with single click.
  
-It creates a menu in tray containing the title, artist, description of the image and some quick settings for background.
-
+You can view the title, artist, description of the image and some quick settings for background from the menu in tray.
 <br>
 
 [<img src="/resources/get_it_on_gnome_extensions.png" height="128">](https://extensions.gnome.org/extension/7071/wikiart-wallpaper/)
@@ -22,18 +21,14 @@ This extension supports GNOME Shell `3.4?` to `46`.
 
 _Tested on GNOME 42 & 46._
 
-# Installing
+## Installing
 You can get this extension from [extensions.gnome.org](https://extensions.gnome.org/extension/7071/wikiart-wallpaper/) or you can download the files and copy wikiartwallpaper@cankurttekin to your `/.local/share/gnome-shell/extensions/` directory.
 
-# Screenshots & Features
+## Screenshots & Features
 ![Screenshot_1](/screenshots/screenshot.png)
-<br>
-![Screenshot_1](/screenshots/menu.png)
-<br>
-![Screenshot_1](/screenshots/refreshed.png)
 <br>
 ![til](/wikiart-extension-demo.gif)
 
-# Contribute
+## Contribute
 You can help with development by contributing code, testing on other GNOME versions and reporting issues.<br>
 Alternatively, you can consider supporting the WikiArt project, [WikiArt.org - How to contribute](https://www.wikiart.org/en/how-to-contribute).
