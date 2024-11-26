@@ -12,11 +12,11 @@ _Disclaimer: This extension is not affiliated, funded, or in any way associated 
 
 ## Version
 
-This extension supports GNOME Shell `3.4?` to `46`.
+This extension supports GNOME Shell `3.4?` to `47`.
 
 |Branch                   |Version|Compatible GNOME version|
 |-------------------------|:-----:|------------------------|
-| master                  |    11  | GNOME 45 & 46          |
+| main                    |    12  | GNOME 45, 46 & 47     |
 | [gnome-shell-before-45](https://github.com/cankurttekin/WikiArt-Wallpaper-Gnome/tree/gnome-shell-before-45)   |    [3.1(8)](https://github.com/cankurttekin/WikiArt-Wallpaper-Gnome/releases/tag/3.1)  | GNOME 3.4 -> 44        |
 
 _Tested on GNOME 42 & 46._
