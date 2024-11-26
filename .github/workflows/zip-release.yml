@@ -33,7 +33,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         tag_name: v${{ env.RELEASE_VERSION }}
-        body: "This release was automatically generated, might be untested and only FOR GNOME 45 & 46."
+        body: "This release was automatically generated, might be untested and only FOR GNOME 45, 46, & 46."
         files: wikiartwallpaper@cankurttekin.zip
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
