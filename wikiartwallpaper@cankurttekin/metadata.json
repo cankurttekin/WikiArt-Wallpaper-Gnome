@@ -4,9 +4,10 @@
   "shell-version": [
     "45",
     "46",
-    "47"
+    "47",
+    "48"
   ],
   "url": "https://github.com/cankurttekin/WikiArt-Wallpaper-Gnome",
   "uuid": "wikiartwallpaper@cankurttekin",
-  "version": 12
+  "version": 13
 }
