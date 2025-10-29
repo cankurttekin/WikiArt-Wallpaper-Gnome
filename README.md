@@ -12,14 +12,13 @@ _Disclaimer: This extension is not affiliated, funded, or in any way associated 
 
 ## Version
 
-This extension supports GNOME Shell `3.4?` to `47`.
+This extension supports GNOME Shell `3.4?` to `49`.
 
 |Branch                   |Version|Compatible GNOME version|
 |-------------------------|:-----:|------------------------|
-| main                    |    12  | GNOME 45, 46 & 47     |
+| main                    |    14  | GNOME 45+     |
 | [gnome-shell-before-45](https://github.com/cankurttekin/WikiArt-Wallpaper-Gnome/tree/gnome-shell-before-45)   |    [3.1(8)](https://github.com/cankurttekin/WikiArt-Wallpaper-Gnome/releases/tag/3.1)  | GNOME 3.4 -> 44        |
 
-_Tested on GNOME 42 & 46._
 
 ## Installing
 You can get this extension from [extensions.gnome.org](https://extensions.gnome.org/extension/7071/wikiart-wallpaper/) or you can download the files and copy wikiartwallpaper@cankurttekin to your `/.local/share/gnome-shell/extensions/` directory.
@@ -27,7 +26,7 @@ You can get this extension from [extensions.gnome.org](https://extensions.gnome.
 ## Screenshots & Features
 ![Screenshot_1](/screenshots/screenshot.png)
 <br>
-![til](/wikiart-extension-demo.gif)
+![til](/screenshots/wikiart-extension-demo.gif)
 
 ## Contribute
 You can help with development by contributing code, testing on other GNOME versions and reporting issues.<br>
