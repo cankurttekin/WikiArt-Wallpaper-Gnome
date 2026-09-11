@@ -12,16 +12,29 @@ _Disclaimer: This extension is not affiliated, funded, or in any way associated 
 
 ## Version
 
-This extension supports GNOME Shell `3.4?` to `49`.
+The main branch supports GNOME Shell `45` to `50`. Older GNOME releases use the legacy branch below.
 
 |Branch                   |Version|Compatible GNOME version|
 |-------------------------|:-----:|------------------------|
-| main                    |    14  | GNOME 45+     |
+| main                    |    15  | GNOME 45–50   |
 | [gnome-shell-before-45](https://github.com/cankurttekin/WikiArt-Wallpaper-Gnome/tree/gnome-shell-before-45)   |    [3.1(8)](https://github.com/cankurttekin/WikiArt-Wallpaper-Gnome/releases/tag/3.1)  | GNOME 3.4 -> 44        |
 
 
 ## Installing
-You can get this extension from [extensions.gnome.org](https://extensions.gnome.org/extension/7071/wikiart-wallpaper/) or you can download the files and copy wikiartwallpaper@cankurttekin to your `/.local/share/gnome-shell/extensions/` directory.
+You can get this extension from [extensions.gnome.org](https://extensions.gnome.org/extension/7071/wikiart-wallpaper/) or copy the `wikiartwallpaper@cankurttekin` directory to `~/.local/share/gnome-shell/extensions/`.
+
+To build and install the current source, run these commands from the repository root:
+
+```sh
+gnome-extensions pack --force --extra-source=icons --out-dir=/tmp wikiartwallpaper@cankurttekin
+gnome-extensions install --force /tmp/wikiartwallpaper@cankurttekin.shell-extension.zip
+```
+
+Log out and back in, then enable the extension:
+
+```sh
+gnome-extensions enable wikiartwallpaper@cankurttekin
+```
 
 ## Screenshots & Features
 ![Screenshot_1](/screenshots/screenshot.png)
